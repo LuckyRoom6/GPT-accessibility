@@ -1,0 +1,13 @@
+{
+  "name": "GPT版 画像認識",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "description": "var4",
+  "content_scripts": [
+    {
+      "matches": ["https://*/*"],
+      "js": ["main.js"]
+    }
+  ],
+  "host_permissions": ["https://api.openai.com/"]
+}
