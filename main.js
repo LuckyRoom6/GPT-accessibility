@@ -161,10 +161,10 @@ const showModal = (content) => {
   });
 };
 
-// 要約ボタンを作成し、クリックイベントを設定する関数
+// ボタンを作成し、クリックイベントを設定する関数
 function createButton() {
   const button = document.createElement("button");
-  button.textContent = "要約";
+  button.textContent = "アクセシビリティチェック開始";
 
   // 画面左下に固定
   button.style.position = "fixed";
@@ -178,7 +178,7 @@ function createButton() {
   return button;
 }
 
-// 要約ボタンを作成してクリックイベントを設定
+// ボタンを作成してクリックイベントを設定
 const button = createButton();
 button.addEventListener("click", () => {
   postHTML().then((ret) => {
