@@ -37,10 +37,6 @@ def index():
         html_content = request.json['page']
         page_text = html_to_text(html_content)
 
-        # ARIAロールの提案
-        elements_without_aria = extract_elements_without_aria(html_content)
-        aria_role_suggestions = suggest_aria_roles(elements_without_aria)
-
         # トークン数が制限を超えた場合のエラーハンドリング
         if count_tokens(page_text) > TOKEN_LIMIT:
             response.content_type = 'application/json'
@@ -60,7 +56,6 @@ def index():
         response.content_type = 'application/json'
         return json.dumps({
             'description': description_html,
-            'aria_role_suggestions': aria_role_suggestions,
             'images_without_alt': image_descriptions  # `alt` タグがない画像とその説明文
         }, ensure_ascii=False)
     except openai.error.APIConnectionError as e:
@@ -122,7 +117,7 @@ def extract_images_without_alt(html_content):
 
 # GPTを使って画像の説明文を取得する関数
 def generate_image_description(image_url):
-    prompt = f"以下の画像URLの内容を説明してください.さらにこの画像のAltタグを生成してください: {image_url}"
+    prompt = f"以下の画像URLの内容を説明してください.さらにこの画像のAltタグを簡潔に分かりやす文言で生成してください: {image_url}"
     response = openai.ChatCompletion.create(
         model='gpt-4o',
         messages=[
@@ -142,45 +137,7 @@ def generate_image_description(image_url):
         max_tokens=1200,
     )
     return response.choices[0].message.content
-
-# ARIAロールがない要素を抽出する関数
-def extract_elements_without_aria(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
-    elements_without_aria = []
-
-    # セマンティックな要素のリスト
-    semantic_elements = ['header', 'nav', 'footer', 'main', 'section', 'article', 'aside']
-
-    for element in semantic_elements:
-        tags = soup.find_all(element)
-        for tag in tags:
-            if not tag.has_attr('role'):  # 既にroleがない場合のみ追加
-                elements_without_aria.append(tag)
-
-    return elements_without_aria
-
-# 要素ごとのARIAロールを提案する関数
-def suggest_aria_roles(elements):
-    role_suggestions = []
-
-    for element in elements:
-        if element.name == 'nav':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="navigation"'})
-        elif element.name == 'header':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="banner"'})
-        elif element.name == 'footer':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="contentinfo"'})
-        elif element.name == 'main':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="main"'})
-        elif element.name == 'section':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="region"'})
-        elif element.name == 'article':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="article"'})
-        elif element.name == 'aside':
-            role_suggestions.append({'element': str(element), 'suggested_aria_role': 'role="complementary"'})
     
-    return role_suggestions
-
 # run localhost
 try:
     run(host='127.0.0.1', port=8000, reloader=True)
