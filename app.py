@@ -1,7 +1,6 @@
 import openai
 from bottle import *
 from bs4 import BeautifulSoup
-from utils.aria_helper import generate_aria_tags_for_images
 from utils.token_calculator import count_tokens
 from bottle import static_file
 import json
@@ -37,7 +36,6 @@ def index():
     try:
         html_content = request.json['page']
         page_text = html_to_text(html_content)
-        aria_tags = generate_aria_tags_for_images(html_content)
 
         # ARIAロールの提案
         elements_without_aria = extract_elements_without_aria(html_content)
@@ -62,7 +60,6 @@ def index():
         response.content_type = 'application/json'
         return json.dumps({
             'description': description_html,
-            'aria_tags': aria_tags,
             'aria_role_suggestions': aria_role_suggestions,
             'images_without_alt': image_descriptions  # `alt` タグがない画像とその説明文
         }, ensure_ascii=False)
