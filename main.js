@@ -189,7 +189,7 @@ button.addEventListener("click", () => {
       <h3>ARIAタグの提案</h3>
       <ul>
         ${ret.aria_tags
-          .map((tag) => `<li>${tag.suggested_aria_tag}</li>`)
+          .map((tag) => `<li>${tag.suggested_aria_role}</li>`)
           .join("")}
       </ul>
       <h3>Altタグがない画像</h3>
