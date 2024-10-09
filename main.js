@@ -187,7 +187,11 @@ button.addEventListener("click", () => {
       <h2>アクセシビリティ評価</h2>
       <div>${ret.description}</div>
       <h3>ARIAタグの提案</h3>
-      <ul></ul>
+      <ul>
+        ${ret.aria_tags
+          .map((tag) => `<li>${tag.suggested_aria_tag}</li>`)
+          .join("")}
+      </ul>
       <h3>Altタグがない画像</h3>
       <ul>
         ${ret.images_without_alt

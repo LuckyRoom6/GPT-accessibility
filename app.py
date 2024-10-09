@@ -1,6 +1,7 @@
 import openai
 from bottle import *
 from bs4 import BeautifulSoup
+from utils.aria_helper import generate_aria_tags_for_images
 from utils.token_calculator import count_tokens
 from bottle import static_file
 import json
@@ -36,6 +37,7 @@ def index():
     try:
         html_content = request.json['page']
         page_text = html_to_text(html_content)
+        aria_tags = generate_aria_tags_for_images(html_content)
 
         # トークン数が制限を超えた場合のエラーハンドリング
         if count_tokens(page_text) > TOKEN_LIMIT:
@@ -56,6 +58,7 @@ def index():
         response.content_type = 'application/json'
         return json.dumps({
             'description': description_html,
+            'aria_tags': aria_tags,
             'images_without_alt': image_descriptions  # `alt` タグがない画像とその説明文
         }, ensure_ascii=False)
     except openai.error.APIConnectionError as e:
