@@ -1,18 +1,15 @@
 import openai
 from bottle import *
 from bs4 import BeautifulSoup
-from utils.aria_helper import generate_aria_tags_for_images
+from utils.aria_helper import generate_aria_tags_for_elements
 from utils.token_calculator import count_tokens
-from bottle import static_file
 import json
 import markdown
 import time
-import re
 
 # APIキーとエンドポイントURLの設定
-api_key = 'jstmHGqjkR5ak8Zq5LaRsI8VwsVMpyjOgoKn9W3OzmCy6dRS8MLbfMe1iufAxsmNCVSwtIO7TXwNXMIAEbGUUxA'
 openai.api_key = api_key
-openai.api_base = 'https://api.openai.iniad.org/api/v1'
+openai.api_base = 'https://api.openai.com/v1'
 
 BaseRequest.MEMFILE_MAX = 1024 * 1024
 
@@ -37,7 +34,7 @@ def index():
     try:
         html_content = request.json['page']
         page_text = html_to_text(html_content)
-        aria_tags = generate_aria_tags_for_images(html_content)
+        aria_tags = generate_aria_tags_for_elements(html_content)
 
         # トークン数が制限を超えた場合のエラーハンドリング
         if count_tokens(page_text) > TOKEN_LIMIT:
@@ -51,15 +48,21 @@ def index():
         # `alt` タグがない画像を抽出して説明文を生成
         image_sources = extract_images_without_alt(html_content)
         image_descriptions = []
-        for src in image_sources:
-            description = generate_image_description(src)
-            image_descriptions.append({'src': src, 'description': description})
+
+        if not image_sources:
+            alt_message = "すべての画像にaltタグが設定されています。"
+        else:
+            for src in image_sources:
+                description = generate_image_description(src)
+                image_descriptions.append({'src': src, 'description': description})
+            alt_message = None
 
         response.content_type = 'application/json'
         return json.dumps({
             'description': description_html,
             'aria_tags': aria_tags,
-            'images_without_alt': image_descriptions  # `alt` タグがない画像とその説明文
+            'images_without_alt': image_descriptions,
+            'alt_message': alt_message
         }, ensure_ascii=False)
     except openai.error.APIConnectionError as e:
         response.status = 500
@@ -92,19 +95,19 @@ system = message('system', """
 """)
 
 def gpt(text):
-    for attempt in range(3):  # 最大3回リトライ
+    for attempt in range(3):
         try:
             response = openai.ChatCompletion.create(
-                model='gpt-4o-mini',  # モデル名を必要に応じて変更
+                model='gpt-4o-mini',
                 messages=[system] + [message('user', text)]
             )
             return response.choices[0].message['content']
         except openai.error.APIConnectionError as e:
-            if attempt < 2:  # 最大リトライ回数未満ならリトライ
-                time.sleep(2)  # 2秒待機
+            if attempt < 2:
+                time.sleep(2)
                 continue
             else:
-                raise e  # 最大リトライ回数を超えた場合は例外を再度スロー
+                raise e
 
 # HTMLファイルの加工
 def html_to_text(html):
@@ -123,7 +126,7 @@ def generate_image_description(image_url):
     openai.api_key = api_key
     prompt = f"以下の画像URLの内容を説明してください.さらにこの画像のAltタグを簡潔で分かりやすく生成してください: {image_url}"
     response = openai.ChatCompletion.create(
-        model='gpt-4o',
+        model='gpt-4o-mini',
         messages=[
             {
                 "role": "user",
@@ -141,7 +144,7 @@ def generate_image_description(image_url):
         max_tokens=1200,
     )
     return response.choices[0].message.content
-    
+
 # run localhost
 try:
     run(host='127.0.0.1', port=8000, reloader=True)

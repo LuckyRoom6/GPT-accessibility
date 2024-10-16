@@ -116,7 +116,12 @@ const showModal = (content) => {
       font-weight: 600;
     }
     .custom-modal h4 {
-      font-size: 15px;
+      font-size: 16px;
+      font-weight: 700;
+      background-color: #eee;
+      color: #17194c;
+      padding: 15px;
+      line-height: 1.3;
     }
     .custom-modal h5 {
       font-size: 1em;
@@ -165,16 +170,12 @@ const showModal = (content) => {
 function createButton() {
   const button = document.createElement("button");
   button.textContent = "アクセシビリティチェック開始";
-
-  // 画面左下に固定
   button.style.position = "fixed";
   button.style.bottom = "10px";
   button.style.left = "10px";
-
-  // ボタンのスタイルを設定
   button.style.zIndex = "100000";
   button.style.backgroundColor = "white";
-  button.style.padding = "4px";
+  button.style.padding = "8px";
   return button;
 }
 
@@ -182,8 +183,9 @@ function createButton() {
 const button = createButton();
 button.addEventListener("click", () => {
   postHTML().then((ret) => {
-    // モーダルにアクセシビリティ評価を表示
-    showModal(`
+    console.log(ret); // Log the response to check its structure and data
+    showModal(
+      `
       <h2>アクセシビリティ評価</h2>
       <div>${ret.description}</div>
       <h3>ARIAタグの提案</h3>
@@ -193,15 +195,20 @@ button.addEventListener("click", () => {
           .join("")}
       </ul>
       <h3>Altタグがない画像</h3>
+      ${ret.alt_message ? `<p>${ret.alt_message}</p>` : ""}
       <ul>
         ${ret.images_without_alt
           .map(
             (img) =>
-              `<li><strong>Image source:</strong> ${img.src} <br><strong>Suggested alt:</strong> ${img.description}</li>`
+              `<li>
+                <strong>画像:</strong><br><img src="${img.src}" alt="${img.description}" style="max-width: 40%; height: auto;" /><br>
+                <strong>Altタグの提案:</strong> ${img.description}
+              </li>`
           )
           .join("")}
       </ul>
-    `);
+    `
+    );
   });
 });
 document.body.appendChild(button);

@@ -1,8 +1,8 @@
 {
   "name": "GPT版 画像認識",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "manifest_version": 3,
-  "description": "var4",
+  "description": "test1",
   "content_scripts": [
     {
       "matches": ["https://*/*"],
