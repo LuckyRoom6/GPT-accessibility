@@ -120,7 +120,8 @@ def extract_images_without_alt(html_content):
 
 # GPTを使って画像の説明文を取得する関数
 def generate_image_description(image_url):
-    prompt = f"以下の画像URLの内容を説明してください.さらにこの画像のAltタグを簡潔に分かりやす文言で生成してください: {image_url}"
+    openai.api_key = api_key
+    prompt = f"以下の画像URLの内容を説明してください.さらにこの画像のAltタグを簡潔で分かりやすく生成してください: {image_url}"
     response = openai.ChatCompletion.create(
         model='gpt-4o',
         messages=[
