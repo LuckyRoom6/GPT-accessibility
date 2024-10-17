@@ -179,13 +179,48 @@ function createButton() {
   return button;
 }
 
+// リロードマークを作成する関数
+const createLoadingSpinner = () => {
+  const spinner = document.createElement("div");
+  spinner.className = "loading-spinner";
+  spinner.innerHTML = `
+    <style>
+      .loading-spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100001;
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  document.body.appendChild(spinner);
+  return spinner;
+};
+
 // ボタンを作成してクリックイベントを設定
 const button = createButton();
-button.addEventListener("click", () => {
-  postHTML().then((ret) => {
+button.addEventListener("click", async () => {
+  // リロードマークを表示
+  const spinner = createLoadingSpinner();
+
+  try {
+    // POSTリクエストを送信し、レスポンスを取得
+    const ret = await postHTML();
     console.log(ret); // Log the response to check its structure and data
-    showModal(
-      `
+
+    // モーダルを表示
+    showModal(`
       <h2>アクセシビリティ評価</h2>
       <div>${ret.description}</div>
       <h3>ARIAタグの提案</h3>
@@ -207,8 +242,13 @@ button.addEventListener("click", () => {
           )
           .join("")}
       </ul>
-    `
-    );
-  });
+    `);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    alert("データの取得中にエラーが発生しました。");
+  } finally {
+    // リロードマークを非表示にする
+    spinner.remove();
+  }
 });
 document.body.appendChild(button);
